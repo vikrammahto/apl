@@ -6,26 +6,26 @@ import { AppLink } from "@/components/ui/link";
 import { Separator } from "@/components/ui/separator";
 
 const productLinks = [
-  { label: "Features", href: "#" },
-  { label: "How it works", href: "#" },
-  { label: "Pricing", href: "#" },
+  { label: "Features", href: "/#features" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Pricing", href: "/auth" },
 ];
 
 const resourceLinks = [
-  { label: "Blog", href: "#" },
-  { label: "Guides", href: "#" },
-  { label: "Help center", href: "#" },
+  { label: "Blog", href: "/#resources" },
+  { label: "Guides", href: "/#resources" },
+  { label: "Help center", href: "/auth" },
 ];
 
 const companyLinks = [
-  { label: "About us", href: "#" },
-  { label: "Careers", href: "#" },
-  { label: "Contact", href: "#" },
+  { label: "About us", href: "/#about" },
+  { label: "Careers", href: "/#about" },
+  { label: "Contact", href: "/auth" },
 ];
 
 export function Footer() {
   return (
-    <footer className="mt-12 bg-white">
+    <footer id="about" className="mt-12 bg-white">
       <Separator />
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-8 py-16 md:grid-cols-5">
         <div className="space-y-6 md:col-span-2">
@@ -88,8 +88,8 @@ export function Footer() {
             <p className="mb-4 text-xs text-muted-foreground">
               It&apos;s free to begin.
             </p>
-            <Button variant="secondary" className="w-full">
-              Get started
+            <Button variant="secondary" className="w-full" asChild>
+              <AppLink href="/auth">Get started</AppLink>
             </Button>
           </div>
         </div>
@@ -101,8 +101,8 @@ export function Footer() {
           © 2024 Mindful. All rights reserved.
           <span className="mx-2 hidden sm:inline">|</span>
           <span className="mt-2 block space-x-4 sm:mt-0 sm:inline">
-            <AppLink href="#">Privacy</AppLink>
-            <AppLink href="#">Terms</AppLink>
+            <AppLink href="/#about">Privacy</AppLink>
+            <AppLink href="/#about">Terms</AppLink>
           </span>
         </p>
         <div className="pointer-events-none absolute right-0 bottom-0 text-indigo-500/10">

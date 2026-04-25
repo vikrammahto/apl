@@ -59,15 +59,56 @@ We are optimizing for speed. Authenticated flows and complex databases are out. 
 - **`JournalInput`**: Auto-resizing textarea with no harsh borders.
 - **`BreathingCircle`**: CSS-animated circle using Tailwind `animate-pulse` or custom keyframes.
 
-## 9. Data Model (Simple JSON)
-```ts
-type Mood = 'terrible' | 'bad' | 'okay' | 'good' | 'great';
+## 9. Data Model (localStorage MVP)
 
-interface Entry {
-  id: string; // uuid or Date.now() timestamp
-  createdAt: string; // ISO string
+Use one versioned localStorage key so the MVP can migrate cleanly later:
+
+- **Key**: `mindful:mvp:v1`
+- **Shape**: one JSON object containing auth, profile, journal, mood, breathing, and preferences.
+- **Auth rule**: dummy login accepts `username` / `password`, then stores `auth.isLoggedIn = true`.
+- **Profile seed**: use `Vikram` as the display name.
+
+```ts
+type Mood = "really-low" | "low" | "okay" | "good" | "great";
+
+type JournalEntry = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
   mood: Mood;
-  note?: string; // Optional journal text
+  desiredMood?: Mood;
+  note: string;
+  tags: string[];
+};
+
+type BreathingSession = {
+  id: string;
+  completedAt: string;
+  pattern: "4-7-8";
+  durationSeconds: number;
+};
+
+type AppStorage = {
+  version: 1;
+  auth: {
+    isLoggedIn: boolean;
+    username: string;
+    displayName: "Vikram";
+    loggedInAt: string | null;
+  };
+  profile: {
+    name: "Vikram";
+    avatarInitials: "VK";
+    timezone: string;
+  };
+  journalEntries: JournalEntry[];
+  moodCheckIns: JournalEntry[];
+  breathingSessions: BreathingSession[];
+  preferences: {
+    reminderEnabled: boolean;
+    reminderTime: string; // HH:mm
+    activeTheme: "calm";
+  };
 }
 ```
 

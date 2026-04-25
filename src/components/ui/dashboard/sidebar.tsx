@@ -26,15 +26,15 @@ export function Sidebar() {
             <SquaresFour className="h-5 w-5" />
             Dashboard
           </Link>
-          <Link href="#" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900">
+          <Link href="/journal" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900">
             <BookOpen className="h-5 w-5" />
             Journal
           </Link>
-          <Link href="#" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900">
+          <Link href="/breath" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900">
             <Wind className="h-5 w-5" />
             Activities
           </Link>
-          <Link href="#" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900">
+          <Link href="/insights" className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900">
             <ChartLineUp className="h-5 w-5" />
             Insights
           </Link>
@@ -48,12 +48,12 @@ export function Sidebar() {
           </div>
           <h4 className="mb-1 text-sm font-semibold text-slate-800">You&apos;re not alone</h4>
           <p className="mb-4 text-xs leading-relaxed text-slate-500">It&apos;s okay to take your time.</p>
-          <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-indigo-600 shadow-sm transition-all hover:bg-slate-50 hover:shadow">
+          <Link href="/auth" className="flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-indigo-600 shadow-sm transition-all hover:bg-slate-50 hover:shadow">
             Get support <ArrowSquareOut className="h-3 w-3" />
-          </button>
+          </Link>
         </div>
 
-        <Link href="#" className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900">
+        <Link href="/profile" className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900">
           <GearSix className="h-5 w-5" />
           Settings
         </Link>

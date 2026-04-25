@@ -27,7 +27,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="relative z-20 mx-auto w-full max-w-7xl px-8 py-20 text-center">
+    <section id="features" className="relative z-20 mx-auto w-full max-w-7xl px-8 py-20 text-center">
       <p className="mb-4 text-xs font-semibold tracking-widest text-indigo-500 uppercase">
         Built for your wellbeing
       </p>

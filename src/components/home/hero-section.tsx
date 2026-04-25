@@ -2,10 +2,11 @@
 
 import { Heart, Leaf, Play } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { AppLink } from "@/components/ui/link";
 
 export function HeroSection() {
   return (
-    <section className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-16 px-8 pt-12 pb-24 lg:flex-row">
+    <section id="how-it-works" className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-16 px-8 pt-12 pb-24 lg:flex-row">
       <div className="relative z-10 w-full flex-1 space-y-8">
         <div className="absolute -top-12 -left-4 rotate-12 text-indigo-200">
           <Heart size={32} weight="fill" />
@@ -39,13 +40,17 @@ export function HeroSection() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4 pt-4">
-          <Button size="lg" className="gap-2">
-            <Leaf size={20} />
-            Start your calm journey
+          <Button size="lg" className="gap-2" asChild>
+            <AppLink href="/auth">
+              <Leaf size={20} />
+              Start your calm journey
+            </AppLink>
           </Button>
-          <Button variant="outline" size="lg" className="gap-2">
-            <Play size={20} className="text-muted-foreground" />
-            Explore features
+          <Button variant="outline" size="lg" className="gap-2" asChild>
+            <AppLink href="#features">
+              <Play size={20} className="text-muted-foreground" />
+              Explore features
+            </AppLink>
           </Button>
         </div>
       </div>

@@ -13,7 +13,7 @@ const avatars = [
 
 export function SocialProofSection() {
   return (
-    <section className="mx-auto w-full max-w-5xl px-8 py-16">
+    <section id="resources" className="mx-auto w-full max-w-5xl px-8 py-16">
       <Card className="p-12">
         <CardContent className="flex flex-col items-center gap-6 p-0">
           <Heart size={24} weight="fill" className="text-indigo-400" />

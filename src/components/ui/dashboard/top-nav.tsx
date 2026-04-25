@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Bell, CaretDown, List, MagnifyingGlass } from "@phosphor-icons/react";
 
 export function TopNav() {
@@ -9,7 +10,7 @@ export function TopNav() {
             <button className="text-slate-400 hover:text-slate-600 transition-colors">
               <List className="h-[22px] w-[22px]" />
             </button>
-            <h1 className="text-lg font-medium text-slate-800 hidden sm:block">Good morning, Alex 💜</h1>
+            <h1 className="text-lg font-medium text-slate-800 hidden sm:block">Good morning, Vikram 💜</h1>
         </div>
       </div>
 
@@ -33,8 +34,14 @@ export function TopNav() {
         </button>
 
         <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 pr-2 rounded-full transition-colors border border-transparent hover:border-slate-100 -mr-2">
-          <img src="https://i.pravatar.cc/100?img=5" alt="Alex" className="h-8 w-8 rounded-full object-cover" />
-          <span className="text-sm font-medium text-slate-700 hidden sm:block pl-1">Alex</span>
+          <Image
+            src="https://i.pravatar.cc/100?img=5"
+            alt="Vikram"
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-full object-cover"
+          />
+          <span className="text-sm font-medium text-slate-700 hidden sm:block pl-1">Vikram</span>
           <CaretDown className="h-4 w-4 text-slate-400 hidden sm:block" />
         </div>
       </div>

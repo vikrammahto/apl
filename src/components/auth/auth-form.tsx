@@ -1,15 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { Eye, ShieldCheck } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AppLink } from "@/components/ui/link";
+import { seedLoggedInUser } from "@/lib/storage";
+
+const DUMMY_USERNAME = "username";
+const DUMMY_PASSWORD = "password";
 
 export function AuthForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState(DUMMY_USERNAME);
+  const [password, setPassword] = useState(DUMMY_PASSWORD);
+  const [error, setError] = useState("");
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (username.trim() !== DUMMY_USERNAME || password !== DUMMY_PASSWORD) {
+      setError("Use username and password for this MVP login.");
+      return;
+    }
+
+    seedLoggedInUser(DUMMY_USERNAME);
+    setError("");
+    router.push("/dashboard");
+  }
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-8 sm:p-12">
@@ -28,14 +50,17 @@ export function AuthForm() {
           <p className="text-muted-foreground">Take a small step. We&apos;re here with you.</p>
         </div>
 
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <div className="relative">
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                autoComplete="username"
+                placeholder="username"
                 className="pl-12"
               />
             </div>
@@ -47,7 +72,10 @@ export function AuthForm() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                placeholder="password"
                 className="pl-12 pr-12"
               />
               <Button
@@ -62,11 +90,13 @@ export function AuthForm() {
               </Button>
             </div>
             <div className="flex justify-end pt-1">
-              <AppLink href="#" className="text-sm text-indigo-500">
+              <AppLink href="/auth" className="text-sm text-indigo-500">
                 Forgot password?
               </AppLink>
             </div>
           </div>
+
+          {error ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
 
           <Button type="submit" className="w-full">
             Continue

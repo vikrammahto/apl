@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { AppLink } from "@/components/ui/link";
 
 const navLinks = [
-  { label: "Features", href: "#" },
-  { label: "How it works", href: "#" },
-  { label: "Resources", href: "#" },
-  { label: "Pricing", href: "#" },
-  { label: "About", href: "#" },
+  { label: "Features", href: "/#features" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Resources", href: "/#resources" },
+  { label: "Pricing", href: "/auth" },
+  { label: "About", href: "/#about" },
 ];
 
 export function Header() {
@@ -29,10 +29,12 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-6">
-        <AppLink href="#" className="hidden sm:block">
+        <AppLink href="/auth" className="hidden sm:block">
           Log in
         </AppLink>
-        <Button>Get started</Button>
+        <Button asChild>
+          <AppLink href="/auth">Get started</AppLink>
+        </Button>
       </div>
     </nav>
   );
