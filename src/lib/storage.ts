@@ -1,6 +1,22 @@
-export const APP_STORAGE_KEY = "mindful:mvp:v1";
+export const APP_STORAGE_KEY = 'mindful:mvp:v1';
 
-export type Mood = "really-low" | "low" | "okay" | "good" | "great";
+export type Mood = 'really-low' | 'low' | 'okay' | 'good' | 'great';
+
+export const moodLabels: Record<Mood, string> = {
+  'really-low': 'Really low',
+  low: 'Low',
+  okay: 'Okay',
+  good: 'Good',
+  great: 'Great',
+};
+
+export const moodScores: Record<Mood, number> = {
+  'really-low': 1,
+  low: 2,
+  okay: 3,
+  good: 4,
+  great: 5,
+};
 
 export type JournalEntry = {
   id: string;
@@ -15,7 +31,7 @@ export type JournalEntry = {
 export type BreathingSession = {
   id: string;
   completedAt: string;
-  pattern: "4-7-8";
+  pattern: '4-7-8';
   durationSeconds: number;
 };
 
@@ -29,6 +45,7 @@ export type AppStorage = {
   };
   profile: {
     name: string;
+    email: string;
     avatarInitials: string;
     timezone: string;
   };
@@ -38,7 +55,7 @@ export type AppStorage = {
   preferences: {
     reminderEnabled: boolean;
     reminderTime: string;
-    activeTheme: "calm";
+    activeTheme: 'light' | 'dark';
   };
 };
 
@@ -47,13 +64,14 @@ export function createInitialAppStorage(): AppStorage {
     version: 1,
     auth: {
       isLoggedIn: false,
-      username: "",
-      displayName: "Vikram",
+      username: '',
+      displayName: 'Vikram',
       loggedInAt: null,
     },
     profile: {
-      name: "Vikram",
-      avatarInitials: "VK",
+      name: 'Vikram',
+      email: 'vikram@email.com',
+      avatarInitials: 'VK',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     journalEntries: [],
@@ -61,14 +79,40 @@ export function createInitialAppStorage(): AppStorage {
     breathingSessions: [],
     preferences: {
       reminderEnabled: false,
-      reminderTime: "09:00",
-      activeTheme: "calm",
+      reminderTime: '19:00',
+      activeTheme: 'light',
     },
   };
 }
 
+function mergeStorage(parsedStorage: Partial<AppStorage>): AppStorage {
+  const initialStorage = createInitialAppStorage();
+
+  return {
+    ...initialStorage,
+    ...parsedStorage,
+    auth: {
+      ...initialStorage.auth,
+      ...parsedStorage.auth,
+    },
+    profile: {
+      ...initialStorage.profile,
+      ...parsedStorage.profile,
+    },
+    preferences: {
+      ...initialStorage.preferences,
+      ...parsedStorage.preferences,
+    },
+    journalEntries:
+      parsedStorage.journalEntries ?? initialStorage.journalEntries,
+    moodCheckIns: parsedStorage.moodCheckIns ?? initialStorage.moodCheckIns,
+    breathingSessions:
+      parsedStorage.breathingSessions ?? initialStorage.breathingSessions,
+  };
+}
+
 export function readAppStorage(): AppStorage {
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     return createInitialAppStorage();
   }
 
@@ -79,10 +123,7 @@ export function readAppStorage(): AppStorage {
   }
 
   try {
-    return {
-      ...createInitialAppStorage(),
-      ...JSON.parse(rawStorage),
-    };
+    return mergeStorage(JSON.parse(rawStorage));
   } catch {
     return createInitialAppStorage();
   }
@@ -90,10 +131,12 @@ export function readAppStorage(): AppStorage {
 
 export function writeAppStorage(storage: AppStorage) {
   window.localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(storage));
+  window.dispatchEvent(new CustomEvent('mindful-storage-change'));
 }
 
 export function seedLoggedInUser(username: string) {
   const storage = readAppStorage();
+  const displayName = storage.profile.name || 'Vikram';
 
   writeAppStorage({
     ...storage,
@@ -101,13 +144,35 @@ export function seedLoggedInUser(username: string) {
       ...storage.auth,
       isLoggedIn: true,
       username,
-      displayName: "Vikram",
+      displayName,
       loggedInAt: new Date().toISOString(),
     },
     profile: {
       ...storage.profile,
-      name: "Vikram",
-      avatarInitials: "VK",
+      name: displayName,
+      avatarInitials: getInitials(displayName),
     },
   });
+}
+
+export function getInitials(name: string) {
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+
+  return initials || 'ME';
+}
+
+export function formatMinutes(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes === 0) {
+    return `${seconds}s`;
+  }
+
+  return seconds === 0 ? `${minutes}m` : `${minutes}m ${seconds}s`;
 }

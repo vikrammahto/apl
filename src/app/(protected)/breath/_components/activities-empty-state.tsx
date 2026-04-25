@@ -1,13 +1,32 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarBlank,
   CaretDown,
   CaretRight,
   FlowerLotus,
   LockKey,
+  PauseCircle,
   PlayCircle,
+  StopCircle,
 } from '@phosphor-icons/react';
+import { useAppStorage } from '@/lib/use-app-storage';
+import { formatMinutes } from '@/lib/storage';
+
+const phases = [
+  { label: 'Inhale', seconds: 4 },
+  { label: 'Hold', seconds: 7 },
+  { label: 'Exhale', seconds: 8 },
+];
+
+function dateLabel(value: string) {
+  return new Intl.DateTimeFormat('en', {
+    weekday: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
 
 function ActivitiesIllustration() {
   return (
@@ -123,6 +142,157 @@ function ActivitiesIllustration() {
 }
 
 export function ActivitiesEmptyState() {
+  const { storage, updateStorage } = useAppStorage();
+  const [filterNow] = useState(() => Date.now());
+  const [isRunning, setIsRunning] = useState(false);
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [phaseRemaining, setPhaseRemaining] = useState(phases[0].seconds);
+  const [elapsed, setElapsed] = useState(0);
+  const [filter, setFilter] = useState<'week' | 'all'>('week');
+
+  const phase = phases[phaseIndex];
+
+  useEffect(() => {
+    if (!isRunning) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setElapsed((current) => current + 1);
+      setPhaseRemaining((current) => {
+        if (current > 1) {
+          return current - 1;
+        }
+
+        setPhaseIndex((currentPhase) => {
+          const nextPhase = (currentPhase + 1) % phases.length;
+          setPhaseRemaining(phases[nextPhase].seconds);
+          return nextPhase;
+        });
+
+        return current;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [isRunning]);
+
+  const sessions = useMemo(() => {
+    const since = filterNow - 7 * 24 * 60 * 60 * 1000;
+
+    return storage.breathingSessions
+      .filter(
+        (session) =>
+          filter === 'all' || new Date(session.completedAt).getTime() >= since,
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
+      );
+  }, [filter, filterNow, storage.breathingSessions]);
+
+  const totalSeconds = sessions.reduce(
+    (sum, session) => sum + session.durationSeconds,
+    0,
+  );
+
+  function startSession() {
+    setIsRunning(true);
+  }
+
+  function pauseSession() {
+    setIsRunning(false);
+  }
+
+  function finishSession() {
+    if (elapsed > 0) {
+      updateStorage((currentStorage) => ({
+        ...currentStorage,
+        breathingSessions: [
+          {
+            id: crypto.randomUUID(),
+            completedAt: new Date().toISOString(),
+            pattern: '4-7-8',
+            durationSeconds: elapsed,
+          },
+          ...currentStorage.breathingSessions,
+        ],
+      }));
+    }
+
+    setIsRunning(false);
+    setPhaseIndex(0);
+    setPhaseRemaining(phases[0].seconds);
+    setElapsed(0);
+  }
+
+  if (storage.breathingSessions.length === 0 && elapsed === 0 && !isRunning) {
+    return (
+      <div className="space-y-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-[#111936]">
+              Activities
+            </h1>
+            <p className="mt-3 text-base font-medium text-[#5f6a8a]">
+              Mindful exercises to help you relax, focus and unwind.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFilter(filter === 'week' ? 'all' : 'week')}
+            className="inline-flex h-12 w-fit items-center gap-3 rounded-xl border border-[#dfe3ef] bg-white px-5 text-sm font-semibold text-[#111936] shadow-sm"
+          >
+            <CalendarBlank className="h-5 w-5 text-[#65708e]" />
+            {filter === 'week' ? 'This week' : 'All sessions'}
+            <CaretDown className="h-4 w-4 text-[#65708e]" />
+          </button>
+        </div>
+
+        <section className="rounded-xl border border-[#dfe3ef] bg-white px-5 py-10 text-center shadow-[0_18px_50px_rgba(67,78,113,0.04)] sm:px-10 lg:py-12">
+          <ActivitiesIllustration />
+          <h2 className="text-2xl font-semibold tracking-tight text-[#111936] sm:text-3xl">
+            Take your first mindful break
+          </h2>
+          <p className="mx-auto mt-4 max-w-[560px] text-base leading-7 font-medium text-[#5f6a8a] sm:text-lg">
+            You haven&apos;t started any activity sessions yet. Short, mindful
+            moments can make a big difference.
+          </p>
+          <button
+            type="button"
+            onClick={startSession}
+            className="mt-7 inline-flex h-14 items-center gap-3 rounded-lg bg-[#6f56e8] px-9 text-base font-semibold text-white shadow-[0_18px_36px_rgba(111,86,232,0.25)] transition hover:bg-[#6049d4]"
+          >
+            <PlayCircle className="h-6 w-6" weight="fill" />
+            Start a session
+          </button>
+          <p className="mt-5 flex items-center justify-center gap-2 text-sm font-semibold text-[#65708e]">
+            <FlowerLotus className="h-5 w-5 text-[#6fa6a0]" />
+            Just a few minutes for you
+          </p>
+        </section>
+
+        <div className="flex flex-col gap-4 rounded-xl border border-[#dfe3ef] bg-white px-5 py-4 text-sm font-medium text-[#4f5b7a] shadow-[0_18px_50px_rgba(67,78,113,0.04)] sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-full border border-[#dfe3ef] text-[#65708e]">
+              <LockKey className="h-5 w-5" />
+            </span>
+            Your data is private and secure. You&apos;re in control.
+          </p>
+          <a
+            className="inline-flex items-center gap-2 text-[#6f56e8]"
+            href="https://www.healthline.com/health/4-7-8-breathing"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Learn more
+            <CaretRight className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -134,30 +304,105 @@ export function ActivitiesEmptyState() {
             Mindful exercises to help you relax, focus and unwind.
           </p>
         </div>
-        <button className="inline-flex h-12 w-fit items-center gap-3 rounded-xl border border-[#dfe3ef] bg-white px-5 text-sm font-semibold text-[#111936] shadow-sm">
+        <button
+          type="button"
+          onClick={() => setFilter(filter === 'week' ? 'all' : 'week')}
+          className="inline-flex h-12 w-fit items-center gap-3 rounded-xl border border-[#dfe3ef] bg-white px-5 text-sm font-semibold text-[#111936] shadow-sm"
+        >
           <CalendarBlank className="h-5 w-5 text-[#65708e]" />
-          This week
+          {filter === 'week' ? 'This week' : 'All sessions'}
           <CaretDown className="h-4 w-4 text-[#65708e]" />
         </button>
       </div>
 
-      <section className="rounded-xl border border-[#dfe3ef] bg-white px-5 py-10 text-center shadow-[0_18px_50px_rgba(67,78,113,0.04)] sm:px-10 lg:py-12">
-        <ActivitiesIllustration />
-        <h2 className="text-2xl font-semibold tracking-tight text-[#111936] sm:text-3xl">
-          Take your first mindful break
-        </h2>
-        <p className="mx-auto mt-4 max-w-[560px] text-base leading-7 font-medium text-[#5f6a8a] sm:text-lg">
-          You haven&apos;t started any activity sessions yet. Short, mindful
-          moments can make a big difference.
-        </p>
-        <button className="mt-7 inline-flex h-14 items-center gap-3 rounded-lg bg-[#6f56e8] px-9 text-base font-semibold text-white shadow-[0_18px_36px_rgba(111,86,232,0.25)] transition hover:bg-[#6049d4]">
-          <PlayCircle className="h-6 w-6" weight="fill" />
-          Start a session
-        </button>
-        <p className="mt-5 flex items-center justify-center gap-2 text-sm font-semibold text-[#65708e]">
-          <FlowerLotus className="h-5 w-5 text-[#6fa6a0]" />
-          Just a few minutes for you
-        </p>
+      <section className="grid gap-5 lg:grid-cols-[1fr_360px]">
+        <div className="rounded-xl border border-[#dfe3ef] bg-white px-5 py-10 text-center shadow-[0_18px_50px_rgba(67,78,113,0.04)] sm:px-10 lg:py-12">
+          <div className="mx-auto grid h-72 w-72 place-items-center rounded-full bg-[#eeeaff] shadow-[0_0_80px_rgba(164,151,247,0.24)]">
+            <div
+              className={`grid place-items-center rounded-full bg-white text-[#725ff0] shadow-[0_22px_50px_rgba(114,95,240,0.16)] transition-all duration-700 ${
+                isRunning ? 'h-52 w-52 scale-105' : 'h-44 w-44'
+              }`}
+            >
+              <FlowerLotus className="h-16 w-16" weight="duotone" />
+              <span className="text-5xl font-semibold tracking-tight">
+                {phaseRemaining}
+              </span>
+            </div>
+          </div>
+
+          <h2 className="mt-8 text-2xl font-semibold tracking-tight text-[#111936] sm:text-3xl">
+            {phase.label}
+          </h2>
+          <p className="mx-auto mt-4 max-w-[560px] text-base leading-7 font-medium text-[#5f6a8a] sm:text-lg">
+            Follow the 4-7-8 pattern. Save the session when you&apos;re done.
+          </p>
+
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={isRunning ? pauseSession : startSession}
+              className="inline-flex h-14 items-center gap-3 rounded-lg bg-[#6f56e8] px-9 text-base font-semibold text-white shadow-[0_18px_36px_rgba(111,86,232,0.25)] transition hover:bg-[#6049d4]"
+            >
+              {isRunning ? (
+                <PauseCircle className="h-6 w-6" weight="fill" />
+              ) : (
+                <PlayCircle className="h-6 w-6" weight="fill" />
+              )}
+              {isRunning ? 'Pause' : elapsed > 0 ? 'Resume' : 'Start'}
+            </button>
+            <button
+              type="button"
+              onClick={finishSession}
+              className="inline-flex h-14 items-center gap-3 rounded-lg border border-[#dfe3ef] bg-white px-7 text-base font-semibold text-[#111936]"
+            >
+              <StopCircle className="h-6 w-6" />
+              Save session
+            </button>
+          </div>
+
+          <p className="mt-5 flex items-center justify-center gap-2 text-sm font-semibold text-[#65708e]">
+            <FlowerLotus className="h-5 w-5 text-[#6fa6a0]" />
+            Current session: {formatMinutes(elapsed)}
+          </p>
+        </div>
+
+        <aside className="rounded-xl border border-[#dfe3ef] bg-white p-5 shadow-[0_18px_50px_rgba(67,78,113,0.04)]">
+          <p className="text-sm font-semibold tracking-[0.08em] text-[#697492] uppercase">
+            Progress
+          </p>
+          <p className="mt-3 text-4xl font-semibold tracking-tight text-[#111936]">
+            {sessions.length}
+          </p>
+          <p className="mt-2 text-sm font-medium text-[#5f6a8a]">
+            completed sessions
+          </p>
+          <div className="mt-5 rounded-lg bg-[#fcfbff] p-4">
+            <p className="text-sm font-semibold text-[#5f6a8a]">Time spent</p>
+            <p className="mt-2 text-2xl font-semibold text-[#725ff0]">
+              {formatMinutes(totalSeconds)}
+            </p>
+          </div>
+          <div className="mt-5 space-y-3">
+            {sessions.length === 0 ? (
+              <p className="rounded-lg border border-[#e8ebf3] p-4 text-sm font-medium text-[#65708e]">
+                Saved breathing sessions will appear here.
+              </p>
+            ) : (
+              sessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="rounded-lg border border-[#e8ebf3] p-4"
+                >
+                  <p className="font-semibold text-[#111936]">4-7-8 breath</p>
+                  <p className="mt-1 text-sm font-medium text-[#65708e]">
+                    {dateLabel(session.completedAt)} ·{' '}
+                    {formatMinutes(session.durationSeconds)}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </aside>
       </section>
 
       <div className="flex flex-col gap-4 rounded-xl border border-[#dfe3ef] bg-white px-5 py-4 text-sm font-medium text-[#4f5b7a] shadow-[0_18px_50px_rgba(67,78,113,0.04)] sm:flex-row sm:items-center sm:justify-between">
@@ -167,10 +412,15 @@ export function ActivitiesEmptyState() {
           </span>
           Your data is private and secure. You&apos;re in control.
         </p>
-        <button className="inline-flex items-center gap-2 text-[#6f56e8]">
+        <a
+          className="inline-flex items-center gap-2 text-[#6f56e8]"
+          href="https://www.healthline.com/health/4-7-8-breathing"
+          target="_blank"
+          rel="noreferrer"
+        >
           Learn more
           <CaretRight className="h-4 w-4" />
-        </button>
+        </a>
       </div>
     </div>
   );
